@@ -13,10 +13,12 @@ public class BotBackgroundService(ITelegramBotClient botClient, BotUpdateHandler
             {
                 UpdateType.Message,
                 UpdateType.CallbackQuery,
-                UpdateType.EditedMessage
+                UpdateType.EditedMessage,
+                UpdateType.ChatMember,
+                UpdateType.MyChatMember
             }
         };
-        
+
         botClient.StartReceiving(
             updateHandler: updateHandler,
             receiverOptions: receiverOptions,

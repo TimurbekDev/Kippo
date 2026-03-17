@@ -14,6 +14,7 @@ public class CommandRouter
     private readonly Dictionary<string, HandlerInfo> _commandHandlers = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<(CallbackQueryAttribute Attr, HandlerInfo Handler)> _callbackHandlers = new();
     private readonly List<(TextAttribute Attr, HandlerInfo Handler)> _textHandlers = new();
+    private readonly List<HandlerInfo> _chatMemberHandlers = new();
     private readonly List<IBotMiddleware> _middlewares = new();
     private readonly ILogger? _logger;
 
@@ -59,6 +60,12 @@ public class CommandRouter
             if (textAttr != null)
             {
                 _textHandlers.Add((textAttr, handlerInfo));
+            }
+
+            var chatMemberAttr = method.GetCustomAttribute<ChatMemberAttribute>();
+            if (chatMemberAttr != null)
+            {
+                _chatMemberHandlers.Add(handlerInfo);
             }
         }
     }
@@ -143,6 +150,15 @@ public class CommandRouter
             }
         }
 
+        if (update.Type == UpdateType.ChatMember || update.Type == UpdateType.MyChatMember)
+        {
+            foreach (var handler in _chatMemberHandlers)
+            {
+                await InvokeHandlerAsync(handler, context);
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -187,6 +203,8 @@ public class CommandRouter
                 args[i] = update.CallbackQuery;
             else if (param.ParameterType == typeof(Context))
                 args[i] = context;
+            else if (param.ParameterType == typeof(ChatMemberUpdated))
+                args[i] = update.ChatMember ?? update.MyChatMember;
             else
             {
                 object? resolvedValue = null;

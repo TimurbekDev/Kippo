@@ -3,6 +3,8 @@ using Kippo.Contexs;
 using Kippo.Handlers;
 using Kippo.Keyboard;
 using KippoGramm;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot;
 
 public class MyHandler : BotUpdateHandler
 {
@@ -256,5 +258,53 @@ public class MyHandler : BotUpdateHandler
             $"📝 You said: _{context.Message.Text}_\n\n" +
             "Use /help to see available commands."
         );
+    }
+
+    [ChatMember]
+    public async Task OnNewMember(Context context)
+    {
+        Console.WriteLine("🔔 [ChatMember] handler called!");
+
+        var chatMember = context.Update.ChatMember ?? context.Update.MyChatMember;
+
+        Console.WriteLine($"ChatMember: {context.Update.ChatMember != null}, MyChatMember: {context.Update.MyChatMember != null}");
+
+        if (chatMember == null)
+        {
+            Console.WriteLine("❌ chatMember is null!");
+            return;
+        }
+
+        var newMember = chatMember.NewChatMember;
+        var oldStatus = chatMember.OldChatMember.Status;
+        var newStatus = newMember.Status;
+
+        Console.WriteLine($"👤 User: {newMember.User.FirstName}, Old Status: {oldStatus}, New Status: {newStatus}");
+
+        if ((oldStatus == ChatMemberStatus.Left || oldStatus == ChatMemberStatus.Kicked) &&
+            (newStatus == ChatMemberStatus.Member || newStatus == ChatMemberStatus.Administrator || 
+             newStatus == ChatMemberStatus.Creator || newStatus == ChatMemberStatus.Restricted))
+        {
+            var user = newMember.User;
+            var isBot = user.IsBot;
+
+            var greeting = isBot 
+                ? $"🤖 Bot qo'shildi: @{user.Username ?? user.FirstName}\n⚠️ Botlar avtomatik tekshiriladi!"
+                : $"👋 Xush kelibsiz, {user.FirstName}!\n\nGruppaga qo'shilganingiz uchun rahmat!";
+
+            Console.WriteLine($"📤 Sending greeting message...");
+
+            await context.BotClient.SendMessage(
+                chatId: chatMember.Chat.Id,
+                text: greeting,
+                cancellationToken: context.CancellationToken
+            );
+
+            Console.WriteLine($"✅ Greeting message sent!");
+        }
+        else
+        {
+            Console.WriteLine($"⚠️ Status change not matched for greeting. Old: {oldStatus} -> New: {newStatus}");
+        }
     }
 }
