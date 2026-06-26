@@ -4,6 +4,7 @@ using Kippo.Handlers;
 using Kippo.Keyboard;
 using KippoGramm;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types;
 using Telegram.Bot;
 
 public class MyHandler : BotUpdateHandler
@@ -257,6 +258,16 @@ public class MyHandler : BotUpdateHandler
         await context.Reply(
             $"📝 You said: _{context.Message.Text}_\n\n" +
             "Use /help to see available commands."
+        );
+    }
+
+    [Contact]
+    public async Task OnContact(Context context, Contact contact)
+    {
+        await context.Reply(
+            $"📞 Contact qabul qilindi!\n\n" +
+            $"• Ism: {contact.FirstName}\n" +
+            $"• Telefon: {contact.PhoneNumber}"
         );
     }
 
