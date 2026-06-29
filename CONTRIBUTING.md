@@ -51,8 +51,8 @@ Feature suggestions are welcome! Please:
 ### Building the Project
 
 ```bash
-git clone https://github.com/TimurbekDev/KippoGramm.git
-cd KippoGramm
+git clone https://github.com/TimurbekDev/Kippo.git
+cd Kippo
 dotnet build
 ```
 

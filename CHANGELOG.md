@@ -73,9 +73,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message context with reply, edit, and delete methods
 - Callback query context for handling inline keyboard interactions
 
-[1.0.8]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.8
-[1.0.7]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.7
-[1.0.6]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.6
-[1.0.5]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.5
-[1.0.4]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.4
-[1.0.0]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.0
+[1.0.8]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.8
+[1.0.7]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.7
+[1.0.6]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.6
+[1.0.5]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.5
+[1.0.4]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.4
+[1.0.0]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.0
