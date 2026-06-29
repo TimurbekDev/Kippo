@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2026-06-29
+
+### Added
+- Contact handling support via `[Contact]` attribute for `contact` messages
+- .NET 10 target framework support (`net8.0;net9.0;net10.0`)
+
+## [1.0.7] - 2026-06-22
+
+### Added
+- Chat member update handlers via `[ChatMember]` attribute
+
+### Changed
+- Refactored and simplified README structure
+
 ## [1.0.6] - 2026-02-12
 
 ### Changed
@@ -59,6 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message context with reply, edit, and delete methods
 - Callback query context for handling inline keyboard interactions
 
+[1.0.8]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.8
+[1.0.7]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.7
 [1.0.6]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.6
 [1.0.5]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.5
 [1.0.4]: https://github.com/TimurbekDev/KippoGramm/releases/tag/v1.0.4

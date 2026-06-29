@@ -62,14 +62,6 @@ dotnet build
 dotnet test
 ```
 
-### Running the Example Bot
-
-```bash
-cd KippoGramm
-# Add your bot token to appsettings.json
-dotnet run
-```
-
 ## Coding Standards
 
 ### C# Style Guide
