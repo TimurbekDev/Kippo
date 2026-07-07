@@ -19,8 +19,17 @@
     <PackageIcon>kippo-logo.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageReleaseNotes>v1.0.8: Added Contact handling via [Contact] attribute and .NET 10 target framework support. v1.0.7: Added chat member update handlers via [ChatMember] attribute and refactored README structure. v1.0.6: Improved documentation structure with simplified READMEs. v1.0.4: Production-ready improvements with thread-safe sessions, automatic service injection, scoped service support, integrated ILogger, optimized network usage with AllowedUpdates, better error messages and null-safety. Breaking: ISessionStore.DeleteAsync method required.</PackageReleaseNotes>
   </PropertyGroup>
+
+  <!-- Extract current version's section from CHANGELOG.md into NuGet release notes -->
+  <Target Name="SetReleaseNotesFromChangelog" BeforeTargets="GenerateNuspec;GenerateNuspecCoreClean">
+    <PropertyGroup>
+      <ChangelogFile>$(MSBuildProjectDirectory)/CHANGELOG.md</ChangelogFile>
+      <ChangelogText>$([System.IO.File]::ReadAllText($(ChangelogFile)))</ChangelogText>
+      <ReleaseNotesRaw>$([System.Text.RegularExpressions.Regex]::Match($(ChangelogText), '(?s)##\s*\[$(Version)\][^\n]*\n(.*?)(?:\n##\s*\[|\z)').Groups[1].Value)</ReleaseNotesRaw>
+      <PackageReleaseNotes>$(ReleaseNotesRaw.Trim())</PackageReleaseNotes>
+    </PropertyGroup>
+  </Target>
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />

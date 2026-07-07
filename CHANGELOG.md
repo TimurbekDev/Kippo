@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.9] - 2026-07-07
 
 ### Added
 - Typed callback data routing: `[CallbackQuery]` patterns now support `{name}` placeholders (e.g. `product:{id}:{action}`) that are parsed and bound to handler method parameters by name, with automatic type conversion (int, long, Guid, enum, etc.)
@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message context with reply, edit, and delete methods
 - Callback query context for handling inline keyboard interactions
 
+[1.0.9]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.9
 [1.0.8]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.8
 [1.0.7]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.7
 [1.0.6]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.6
