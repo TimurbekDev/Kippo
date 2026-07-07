@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     
     <PackageId>Kippo</PackageId>
-    <Version>1.0.8</Version>
+    <Version>1.0.9</Version>
     <Authors>Timurbek</Authors>
     <Company>Kippo</Company>
     <Description>A lightweight, attribute-based framework for building Telegram bots in .NET with support for session management, middleware, and intuitive routing.</Description>

@@ -28,11 +28,20 @@ public async Task HandleName(Context context)
     context.Session.Data["name"] = name;
     await context.Reply($"Nice to meet you, {name}!");
 }
+
+// Typed callback routing — placeholders are parsed and bound by name
+[CallbackQuery("product:{id}:{action}")]
+public async Task OnProduct(Context context, int id, string action)
+{
+    await context.Callback.Answer();
+    await context.Reply($"Product {id} → {action}");
+}
 ```
 
 ## ✨ Key Features
 
 - 🎯 **Attribute-based routing** - `[Command]`, `[Text]`, `[CallbackQuery]`, `[ChatMember]`, `[Contact]`
+- 🔗 **Typed callback data** - `{placeholder}` templates parsed & bound to typed method params
 - 💾 **Session management** - Track user state and data across conversations
 - 🔌 **Middleware pipeline** - Add logging, auth, rate limiting, and more
 - ⌨️ **Keyboard builders** - Fluent API for reply and inline keyboards

@@ -1,6 +1,7 @@
 ﻿using Kippo.Attribute;
 using Kippo.Contexs;
 using Kippo.Middleware;
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
@@ -131,9 +132,9 @@ public class CommandRouter
             var callbackData = update.CallbackQuery?.Data;
             foreach (var (attr, handler) in _callbackHandlers)
             {
-                if (attr.Matches(callbackData))
+                if (attr.TryMatch(callbackData, out var routeValues))
                 {
-                    await InvokeHandlerAsync(handler, context);
+                    await InvokeHandlerAsync(handler, context, routeValues);
                     return true;
                 }
             }
@@ -178,7 +179,10 @@ public class CommandRouter
         return false;
     }
 
-    private async Task InvokeHandlerAsync(HandlerInfo handler, Context context)
+    private async Task InvokeHandlerAsync(
+        HandlerInfo handler,
+        Context context,
+        IReadOnlyDictionary<string, string>? routeValues = null)
     {
         var botClient = context.BotClient;
         var update = context.Update;
@@ -223,6 +227,11 @@ public class CommandRouter
                 args[i] = update.ChatMember ?? update.MyChatMember;
             else if (param.ParameterType == typeof(Contact))
                 args[i] = update.Message?.Contact;
+            else if (routeValues != null && param.Name != null
+                     && routeValues.TryGetValue(param.Name, out var rawValue))
+            {
+                args[i] = ConvertRouteValue(rawValue, param, handler);
+            }
             else
             {
                 object? resolvedValue = null;
@@ -267,6 +276,43 @@ public class CommandRouter
         finally
         {
             scope?.Dispose();
+        }
+    }
+
+    private object? ConvertRouteValue(string rawValue, ParameterInfo param, HandlerInfo handler)
+    {
+        var targetType = Nullable.GetUnderlyingType(param.ParameterType) ?? param.ParameterType;
+
+        try
+        {
+            if (targetType == typeof(string))
+                return rawValue;
+
+            if (targetType.IsEnum)
+                return Enum.Parse(targetType, rawValue, ignoreCase: true);
+
+            if (targetType == typeof(Guid))
+                return Guid.Parse(rawValue);
+
+            return Convert.ChangeType(rawValue, targetType, CultureInfo.InvariantCulture);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex,
+                "Failed to convert callback route value '{RawValue}' to type {TargetType} for parameter " +
+                "'{ParameterName}' in handler {HandlerMethod}.",
+                rawValue, targetType.Name, param.Name, handler.Method.Name);
+
+            if (param.HasDefaultValue)
+                return param.DefaultValue;
+
+            if (IsNullable(param.ParameterType))
+                return null;
+
+            throw new InvalidOperationException(
+                $"Cannot convert callback route value '{rawValue}' to required parameter " +
+                $"'{param.Name}' of type '{targetType.Name}' for handler method " +
+                $"'{handler.Method.DeclaringType?.Name}.{handler.Method.Name}'.", ex);
         }
     }
 
