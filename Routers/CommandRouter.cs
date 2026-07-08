@@ -18,7 +18,15 @@ public class CommandRouter
     private readonly List<HandlerInfo> _chatMemberHandlers = new();
     private readonly List<HandlerInfo> _contactHandlers = new();
     private readonly List<IBotMiddleware> _middlewares = new();
+    private readonly List<BotCommand> _botCommands = new();
+    private HandlerInfo? _fallbackHandler;
     private readonly ILogger? _logger;
+
+    /// <summary>
+    /// Commands declared with a <c>Description</c> on their <c>[Command]</c> attribute,
+    /// suitable for registration via <c>SetMyCommands</c>.
+    /// </summary>
+    public IReadOnlyList<BotCommand> BotCommands => _botCommands;
 
     public CommandRouter(object handlerInstance, ILogger? logger = null)
     {
@@ -51,6 +59,15 @@ public class CommandRouter
                 }
 
                 _commandHandlers[cmdAttr.Command] = handlerInfo;
+
+                if (!string.IsNullOrWhiteSpace(cmdAttr.Description))
+                {
+                    _botCommands.Add(new BotCommand
+                    {
+                        Command = cmdAttr.Command,
+                        Description = cmdAttr.Description
+                    });
+                }
             }
 
             foreach (var cbAttr in method.GetCustomAttributes<CallbackQueryAttribute>())
@@ -74,6 +91,18 @@ public class CommandRouter
             if (contactAttr != null)
             {
                 _contactHandlers.Add(handlerInfo);
+            }
+
+            if (method.GetCustomAttribute<FallbackAttribute>() != null)
+            {
+                if (_fallbackHandler != null)
+                {
+                    _logger?.LogWarning(
+                        "Duplicate [Fallback] handler in method {Method}. Previous registration will be overwritten.",
+                        method.Name);
+                }
+
+                _fallbackHandler = handlerInfo;
             }
         }
     }
@@ -174,6 +203,12 @@ public class CommandRouter
                 await InvokeHandlerAsync(handler, context);
                 return true;
             }
+        }
+
+        if (_fallbackHandler != null)
+        {
+            await InvokeHandlerAsync(_fallbackHandler, context);
+            return true;
         }
 
         return false;

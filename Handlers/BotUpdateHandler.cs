@@ -13,6 +13,9 @@ public abstract class BotUpdateHandler : IBotUpdateHandler
     private IServiceProvider? _serviceProvider;
     protected ILogger? Logger { get; private set; }
 
+    internal IReadOnlyList<BotCommand> BotCommands =>
+        _commandRouter?.BotCommands ?? Array.Empty<BotCommand>();
+
     protected BotUpdateHandler()
     {
     }

@@ -15,7 +15,8 @@ dotnet add package Kippo
 ## 🚀 Quick Example
 
 ```csharp
-[Command("start")]
+// Description is auto-registered to Telegram's command menu on startup
+[Command("start", Description = "Start the bot")]
 public async Task Start(Context context)
 {
     await context.Reply("Hello! 👋");
@@ -44,11 +45,19 @@ public async Task OnProduct(Context context, int id, string action)
     await context.Callback.Answer();
     await context.Reply($"Product {id} → {action}");
 }
+
+// Catch-all for updates that matched no other handler (e.g. unknown commands)
+[Fallback]
+public async Task Unknown(Context context)
+{
+    await context.Reply("I don't understand. Try /help");
+}
 ```
 
 ## ✨ Key Features
 
-- 🎯 **Attribute-based routing** - `[Command]`, `[Text]`, `[CallbackQuery]`, `[ChatMember]`, `[Contact]`
+- 🎯 **Attribute-based routing** - `[Command]`, `[Text]`, `[CallbackQuery]`, `[ChatMember]`, `[Contact]`, `[Fallback]`
+- 📋 **Auto command menu** - `[Command]` descriptions are synced to Telegram's `/` menu on startup via `SetMyCommands`
 - 🔗 **Typed callback data** - `{placeholder}` templates parsed & bound to typed method params
 - 💾 **Session management** - Track user state and data across conversations, with typed state helpers (`SetState`/`InState`) and configurable TTL/LRU eviction
 - 🔌 **Middleware pipeline** - Add logging, auth, rate limiting, and more
