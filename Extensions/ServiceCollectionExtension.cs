@@ -11,13 +11,17 @@ namespace Kippo.Extensions;
 
 public static class ServiceCollectionExtension
 {
-    public static IServiceCollection AddKippo<THandler>(this IServiceCollection services,IConfiguration configuration) where THandler : class, IBotUpdateHandler
+    public static IServiceCollection AddKippo<THandler>(this IServiceCollection services,IConfiguration configuration, Action<SessionOptions>? configureSession = null) where THandler : class, IBotUpdateHandler
     {
         var botToken = configuration.GetSection("Kippo")["BotToken"]
             ?? throw new InvalidOperationException("Kippo:BotToken configuration is required.");
 
         AddBotClient(services, configuration);
-        services.AddSingleton<ISessionStore,InMemorySessionStore>();
+
+        var sessionOptions = new SessionOptions();
+        configureSession?.Invoke(sessionOptions);
+        services.AddSingleton(sessionOptions);
+        services.AddSingleton<ISessionStore>(sp => new InMemorySessionStore(sp.GetRequiredService<SessionOptions>()));
         
         services.AddSingleton<IBotUpdateHandler>(sp =>
         {

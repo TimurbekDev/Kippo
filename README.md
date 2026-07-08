@@ -21,11 +21,19 @@ public async Task Start(Context context)
     await context.Reply("Hello! 👋");
 }
 
+[Command("register")]
+public async Task Register(Context context)
+{
+    context.Session.SetState("awaiting_name");
+    await context.Reply("What's your name?");
+}
+
 [Text(State = "awaiting_name")]
 public async Task HandleName(Context context)
 {
     var name = context.Message.Text;
-    context.Session.Data["name"] = name;
+    context.Session.Set("name", name);   // marks the session dirty → persisted
+    context.Session.ClearState();
     await context.Reply($"Nice to meet you, {name}!");
 }
 
@@ -42,7 +50,7 @@ public async Task OnProduct(Context context, int id, string action)
 
 - 🎯 **Attribute-based routing** - `[Command]`, `[Text]`, `[CallbackQuery]`, `[ChatMember]`, `[Contact]`
 - 🔗 **Typed callback data** - `{placeholder}` templates parsed & bound to typed method params
-- 💾 **Session management** - Track user state and data across conversations
+- 💾 **Session management** - Track user state and data across conversations, with typed state helpers (`SetState`/`InState`) and configurable TTL/LRU eviction
 - 🔌 **Middleware pipeline** - Add logging, auth, rate limiting, and more
 - ⌨️ **Keyboard builders** - Fluent API for reply and inline keyboards
 - 💉 **Service injection** - Full ASP.NET Core DI support

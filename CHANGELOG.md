@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-07-08
+
+### Added
+- Session state helper API: `SetState`/`ClearState`/`InState` plus enum-typed overloads (`SetState<TEnum>`, `GetState<TEnum>`, `InState<TEnum>`) for type-safe FSM states
+- `SessionExtensions.Remove(key)` to remove a session data entry
+- Session eviction via `SessionOptions` (`Ttl` sliding expiration, `MaxSessions` LRU cap, `SweepInterval`) configurable through `AddKippo(config, opt => ...)` — prevents unbounded in-memory session growth
+
+### Changed
+- Session persistence now uses dirty tracking: `SaveAsync` runs only when the session was actually mutated, cutting redundant writes (especially for external stores)
+- `SessionMiddleware` serializes concurrent updates per chat with striped locks, preventing lost updates when the same user sends updates in parallel
+
 ## [1.0.9] - 2026-07-07
 
 ### Added
@@ -78,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message context with reply, edit, and delete methods
 - Callback query context for handling inline keyboard interactions
 
+[1.1.0]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.0
 [1.0.9]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.9
 [1.0.8]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.8
 [1.0.7]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.7
