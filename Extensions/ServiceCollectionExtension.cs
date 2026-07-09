@@ -18,7 +18,8 @@ public static class ServiceCollectionExtension
         this IServiceCollection services,
         IConfiguration configuration,
         Action<SessionOptions>? configureSession = null,
-        Action<FloodControlOptions>? configureFloodControl = null) where THandler : class, IBotUpdateHandler
+        Action<FloodControlOptions>? configureFloodControl = null,
+        bool useLongPolling = true) where THandler : class, IBotUpdateHandler
     {
         var botToken = configuration.GetSection("Kippo")["BotToken"]
             ?? throw new InvalidOperationException("Kippo:BotToken configuration is required.");
@@ -59,7 +60,19 @@ public static class ServiceCollectionExtension
         });
         
         services.AddSingleton<BotUpdateHandlerAdapter>();
-        services.AddHostedService<BotBackgroundService>();
+
+        if (useLongPolling)
+        {
+            // Long polling: receive updates + register the command menu on startup.
+            services.AddHostedService<BotBackgroundService>();
+        }
+        else
+        {
+            // Webhook mode: no polling. Register the command menu (and optionally the webhook URL)
+            // on startup; inbound updates arrive via MapKippoWebhook.
+            services.AddHostedService<WebhookBootstrapService>();
+        }
+
         return services;
     }
 

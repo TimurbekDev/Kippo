@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-07-09
+
+### Added
+- Webhook hosting: `app.MapKippoWebhook("/bot", secretToken)` receives updates over HTTP and runs them through the same router, middleware, session and scene pipeline as long polling. Disable polling with `AddKippo(..., useLongPolling: false)`. The secret token is validated against Telegram's `X-Telegram-Bot-Api-Secret-Token` header (401 on mismatch); malformed bodies return 400. When `Kippo:WebhookUrl` is configured, Kippo registers the webhook with Telegram (`setWebhook`) and the command menu on startup
+
+### Changed
+- Kippo now references the `Microsoft.AspNetCore.App` shared framework (its documented host is already an ASP.NET Core `WebApplication`), replacing the standalone `Microsoft.Extensions.Hosting`/`Logging` package references
+
 ## [1.1.3] - 2026-07-09
 
 ### Added
@@ -107,6 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message context with reply, edit, and delete methods
 - Callback query context for handling inline keyboard interactions
 
+[1.1.4]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.4
 [1.1.3]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.3
 [1.1.2]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.2
 [1.1.1]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.1

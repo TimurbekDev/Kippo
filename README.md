@@ -61,6 +61,7 @@ public async Task Unknown(Context context)
 - 🔗 **Typed callback data** - `{placeholder}` templates parsed & bound to typed method params
 - 💾 **Session management** - Track user state and data across conversations, with typed state helpers (`SetState`/`InState`) and configurable TTL/LRU eviction
 - 🎬 **Scenes & conversations** - Write multi-step dialogs as linear code with `await ctx.Ask()` — resumable, typed, and testable
+- 🌐 **Polling or webhook** - Long polling for dev, `MapKippoWebhook` for production/serverless — same pipeline either way
 - 🔌 **Middleware pipeline** - Add logging, auth, rate limiting, and more
 - ⌨️ **Keyboard builders** - Fluent API for reply and inline keyboards
 - 💉 **Service injection** - Full ASP.NET Core DI support
@@ -98,6 +99,26 @@ public async Task Signup(SceneContext ctx)
 `Ask<T>` parses and validates the reply (int, Guid, enum, …) and re-asks on invalid input. Scenes
 support DI, only intercept plain text (so `/cancel` always works via `context.ExitScene()`), and are
 fully driveable with `TestBot`.
+
+## 🌐 Webhooks
+
+Run in production over HTTP instead of long polling. Disable polling with `useLongPolling: false` and
+map the receiver — updates flow through the same router, middleware, sessions and scenes.
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddKippo<MyBotHandler>(builder.Configuration, useLongPolling: false)
+                .AddKippoMiddleware<SessionMiddleware>();
+
+var app = builder.Build();
+app.MapKippoWebhook("/bot", secretToken: "my-secret");   // 401s requests without the secret header
+app.Run();
+```
+
+Set `Kippo:WebhookUrl` (+ optional `Kippo:WebhookSecret`) in configuration and Kippo calls
+`setWebhook` for you on startup. The secret token is validated against Telegram's
+`X-Telegram-Bot-Api-Secret-Token` header on every request.
 
 ## 🧪 Testing
 
