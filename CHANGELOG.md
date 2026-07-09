@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2026-07-09
+
+### Changed
+- Updated `Telegram.Bot` dependency to `22.10.1.1`
+- Enriched NuGet package metadata (title, description, and tags) for discoverability
+
+### Packaging
+- Enabled SourceLink (`Microsoft.SourceLink.GitHub`), symbol packages (`.snupkg`), and deterministic builds for a source-debuggable, verifiable package
+
 ## [1.1.4] - 2026-07-09
 
 ### Added

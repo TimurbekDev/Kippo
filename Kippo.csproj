@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     
     <PackageId>Kippo</PackageId>
-    <Version>1.1.4</Version>
+    <Version>1.1.5</Version>
     <Authors>Timurbek</Authors>
     <Company>Kippo</Company>
     <Title>Kippo — Telegram Bot Framework for C# / .NET</Title>
@@ -20,6 +20,15 @@
     <PackageIcon>kippo-logo.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+    <!-- Supply-chain / package-health signals: SourceLink, symbols, reproducible build -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Deterministic>true</Deterministic>
+    <!-- Set automatically by CI (e.g. GitHub Actions sets CI=true) for a verifiable build -->
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <!-- Extract current version's section from CHANGELOG.md into NuGet release notes -->
@@ -38,7 +47,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Telegram.Bot" Version="22.8.1" />
+    <PackageReference Include="Telegram.Bot" Version="22.10.1.1" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <!--
