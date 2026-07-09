@@ -2,6 +2,7 @@
 using Kippo.Callbacks;
 using Kippo.Contexs;
 using Kippo.Middleware;
+using Kippo.Scenes;
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
@@ -19,6 +20,7 @@ public class CommandRouter
     private readonly List<(TextAttribute Attr, HandlerInfo Handler)> _textHandlers = new();
     private readonly List<HandlerInfo> _chatMemberHandlers = new();
     private readonly List<HandlerInfo> _contactHandlers = new();
+    private readonly Dictionary<string, HandlerInfo> _sceneHandlers = new(StringComparer.Ordinal);
     private readonly List<IBotMiddleware> _middlewares = new();
     private readonly List<BotCommand> _botCommands = new();
     private HandlerInfo? _fallbackHandler;
@@ -95,6 +97,20 @@ public class CommandRouter
                 _contactHandlers.Add(handlerInfo);
             }
 
+            var sceneAttr = method.GetCustomAttribute<SceneAttribute>();
+            if (sceneAttr != null)
+            {
+                if (_sceneHandlers.ContainsKey(sceneAttr.Name))
+                {
+                    _logger?.LogWarning(
+                        "Duplicate [Scene] registration: '{Scene}' in method {Method}. Previous registration will be overwritten.",
+                        sceneAttr.Name,
+                        method.Name);
+                }
+
+                _sceneHandlers[sceneAttr.Name] = handlerInfo;
+            }
+
             if (method.GetCustomAttribute<FallbackAttribute>() != null)
             {
                 if (_fallbackHandler != null)
@@ -139,6 +155,107 @@ public class CommandRouter
     }
 
     public async Task<bool> RouteInternalAsync(Context context)
+    {
+        // 1. An active scene intercepts the user's plain-text replies (commands still fall through,
+        //    so /cancel and friends remain reachable as escape hatches).
+        if (SceneState.IsActive(context.Session) && IsSceneInput(context))
+        {
+            var activeScene = SceneState.GetName(context.Session!)!;
+            await RunSceneAsync(context, activeScene, context.Update.Message!.Text!);
+            return true;
+        }
+
+        // 2. Normal routing.
+        var handled = await DispatchAsync(context);
+
+        // 3. A handler just called EnterScene → run the scene's opening turn (sends the first prompt).
+        if (context.Items.TryGetValue(SceneState.EnterFlagKey, out var entered) && entered is string sceneName)
+        {
+            context.Items.Remove(SceneState.EnterFlagKey);
+            await RunSceneAsync(context, sceneName, pendingInput: null);
+        }
+
+        return handled;
+    }
+
+    private static bool IsSceneInput(Context context)
+    {
+        var msg = context.Update.Message;
+        return context.Update.Type == UpdateType.Message
+            && !string.IsNullOrEmpty(msg?.Text)
+            && !msg.Text.StartsWith("/");
+    }
+
+    private async Task RunSceneAsync(Context context, string sceneName, string? pendingInput)
+    {
+        if (context.Session is null)
+            return;
+
+        if (!_sceneHandlers.TryGetValue(sceneName, out var handler))
+        {
+            _logger?.LogWarning("No [Scene] handler registered for '{Scene}'. Clearing scene state.", sceneName);
+            SceneState.Clear(context.Session);
+            return;
+        }
+
+        var answers = SceneState.LoadAnswers(context.Session);
+        var sceneContext = new SceneContext(context, answers, pendingInput);
+
+        try
+        {
+            await InvokeSceneAsync(handler, context, sceneContext);
+            // Reached the end without halting → the dialog is complete.
+            SceneState.Clear(context.Session);
+        }
+        catch (SceneHaltException)
+        {
+            // Suspended at an unanswered Ask → persist progress for the next message.
+            SceneState.SaveAnswers(context.Session, sceneContext.Answers);
+        }
+    }
+
+    private async Task InvokeSceneAsync(HandlerInfo handler, Context context, SceneContext sceneContext)
+    {
+        IServiceScope? scope = null;
+        IServiceProvider? serviceProvider = context.ServiceProvider;
+
+        if (context.ServiceProvider?.GetService(typeof(IServiceScopeFactory)) is IServiceScopeFactory scopeFactory)
+        {
+            scope = scopeFactory.CreateScope();
+            serviceProvider = scope.ServiceProvider;
+        }
+
+        try
+        {
+            var parameters = handler.Method.GetParameters();
+            var args = new object?[parameters.Length];
+
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var type = parameters[i].ParameterType;
+                if (type == typeof(SceneContext))
+                    args[i] = sceneContext;
+                else if (type == typeof(Context))
+                    args[i] = context;
+                else
+                    args[i] = serviceProvider?.GetService(type);
+            }
+
+            if (handler.Method.Invoke(handler.Instance, args) is Task task)
+                await task;
+        }
+        catch (TargetInvocationException tie) when (tie.InnerException is SceneHaltException halt)
+        {
+            // Reflection wraps the halt thrown inside the scene method — unwrap it.
+            throw halt;
+        }
+        finally
+        {
+            scope?.Dispose();
+        }
+    }
+
+    private async Task<bool> DispatchAsync(Context context)
     {
         var update = context.Update;
 

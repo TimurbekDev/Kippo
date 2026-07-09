@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-07-09
+
+### Added
+- Scenes & conversations: mark a method with `[Scene("name")]` and write multi-step dialogs as linear code — `await ctx.Ask(prompt)` sends a prompt and returns the user's next reply; `await ctx.Ask<T>(prompt, retry)` parses and validates it (int, Guid, enum, …), re-asking on invalid input. Enter from any handler with `context.EnterScene("name")`; exit with `context.ExitScene()` (`context.InScene` reports status). Progress persists to the session between messages and resumes automatically, so scenes survive restarts with a persistent `ISessionStore`. Scenes support DI, only intercept plain text (commands remain reachable), and are fully driveable with `TestBot`
+
 ## [1.1.2] - 2026-07-09
 
 ### Added
@@ -102,6 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message context with reply, edit, and delete methods
 - Callback query context for handling inline keyboard interactions
 
+[1.1.3]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.3
 [1.1.2]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.2
 [1.1.1]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.1
 [1.1.0]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.0

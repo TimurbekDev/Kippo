@@ -60,6 +60,7 @@ public async Task Unknown(Context context)
 - 📋 **Auto command menu** - `[Command]` descriptions are synced to Telegram's `/` menu on startup via `SetMyCommands`
 - 🔗 **Typed callback data** - `{placeholder}` templates parsed & bound to typed method params
 - 💾 **Session management** - Track user state and data across conversations, with typed state helpers (`SetState`/`InState`) and configurable TTL/LRU eviction
+- 🎬 **Scenes & conversations** - Write multi-step dialogs as linear code with `await ctx.Ask()` — resumable, typed, and testable
 - 🔌 **Middleware pipeline** - Add logging, auth, rate limiting, and more
 - ⌨️ **Keyboard builders** - Fluent API for reply and inline keyboards
 - 💉 **Service injection** - Full ASP.NET Core DI support
@@ -67,6 +68,36 @@ public async Task Unknown(Context context)
 - 🚦 **Flood control** - Automatic retry on Telegram `429` + optional per-chat throttling
 - 🗄️ **Large callback payloads** - Attach arbitrarily big typed data to buttons, past the 64-byte limit
 - 🚀 **Production ready** - Thread-safe, optimized for performance
+
+## 🎬 Scenes & Conversations
+
+Write multi-step dialogs as plain sequential code instead of scattering handlers across a hand-rolled
+state machine. Each `await ctx.Ask(...)` sends a prompt and returns the user's next reply; progress is
+persisted to the session between messages and resumes automatically.
+
+```csharp
+[Command("signup")]
+public Task Start(Context c)
+{
+    c.EnterScene("signup");           // sends the first prompt, then runs the scene
+    return Task.CompletedTask;
+}
+
+[Scene("signup")]
+public async Task Signup(SceneContext ctx)
+{
+    var name = await ctx.Ask("What's your name?");
+    await ctx.Reply($"Hi {name}! 👋");
+
+    var age = await ctx.Ask<int>("How old are you?", retry: "Please send a number 🙂");
+
+    await ctx.Reply($"All set, {name} — registered at age {age}. ✅");
+}
+```
+
+`Ask<T>` parses and validates the reply (int, Guid, enum, …) and re-asks on invalid input. Scenes
+support DI, only intercept plain text (so `/cancel` always works via `context.ExitScene()`), and are
+fully driveable with `TestBot`.
 
 ## 🧪 Testing
 
