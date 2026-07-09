@@ -63,7 +63,73 @@ public async Task Unknown(Context context)
 - 🔌 **Middleware pipeline** - Add logging, auth, rate limiting, and more
 - ⌨️ **Keyboard builders** - Fluent API for reply and inline keyboards
 - 💉 **Service injection** - Full ASP.NET Core DI support
+- 🧪 **Testable** - Drive your bot with fake updates in unit tests, no token or network
+- 🚦 **Flood control** - Automatic retry on Telegram `429` + optional per-chat throttling
+- 🗄️ **Large callback payloads** - Attach arbitrarily big typed data to buttons, past the 64-byte limit
 - 🚀 **Production ready** - Thread-safe, optimized for performance
+
+## 🧪 Testing
+
+Test handlers end-to-end without a bot token or network. `TestBot<T>` wires the real router,
+middleware and session store around a fake client that records everything the bot sends.
+
+```csharp
+var bot = new TestBot<MyHandler>();
+
+await bot.SendCommand("start");
+Assert.Equal("Hello! 👋", bot.LastReply?.Text);
+
+await bot.SendCommand("register");
+await bot.SendText("Timur");
+Assert.Null(bot.Session.State);
+Assert.Equal("Nice to meet you, Timur!", bot.LastReply?.Text);
+
+await bot.TapButton("product:42:buy");            // simulate an inline button tap
+Assert.Contains(bot.Client.SentOf<AnswerCallbackQueryRequest>(), _ => true);
+```
+
+Register the fakes/services your handler resolves via the constructor:
+`new TestBot<MyHandler>(services => services.AddSingleton<IClock>(fakeClock))`.
+
+## 🚦 Flood control
+
+Opt in when calling `AddKippo` to survive Telegram's rate limits transparently. Outbound requests
+that fail with `429 Too Many Requests` are retried honoring the server's `retry_after`; set
+`MinIntervalPerChat` to also space out messages per chat.
+
+```csharp
+builder.Services.AddKippo<MyHandler>(
+    builder.Configuration,
+    configureFloodControl: opt =>
+    {
+        opt.MaxRetries = 3;
+        opt.MinIntervalPerChat = TimeSpan.FromSeconds(1);
+    });
+```
+
+## 🗄️ Large callback payloads (the 64-byte problem)
+
+Telegram caps `callback_data` at 64 bytes. Build the keyboard with `context.Inline()` and attach a
+typed payload of any size via `.Payload(...)` — Kippo stores it in a callback vault and puts only a
+short token on the button. The payload is rebound to a typed handler parameter on tap.
+
+```csharp
+[Command("buy")]
+public Task Buy(Context c) =>
+    c.Reply("Confirm your order:", c.Inline()
+        .Payload("✅ Buy", "order:buy", new Order(Id: 42, Coupon: "SUMMER-2026-EXTRA-LONG", Qty: 3))
+        .Build());
+
+[CallbackQuery("order:buy")]
+public async Task OnBuy(Context c, Order order)   // payload bound by type
+{
+    await c.Callback.Answer();
+    await c.Reply($"Ordered {order.Qty}× #{order.Id} ({order.Coupon})");
+}
+```
+
+Swap the default in-memory vault for a distributed `ICallbackStore` (Redis, DB) to keep tokens valid
+across restarts and multiple instances.
 
 ## 📖 Full Documentation
 

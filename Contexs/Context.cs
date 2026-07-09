@@ -1,4 +1,6 @@
-﻿using Kippo.SessionStorage;
+﻿using Kippo.Callbacks;
+using Kippo.Keyboard;
+using Kippo.SessionStorage;
 
 namespace Kippo.Contexs;
 
@@ -9,6 +11,9 @@ public class Context
     public CancellationToken CancellationToken { get; }
     public ISessionStore SessionStore { get; }
     public IServiceProvider? ServiceProvider { get; }
+
+    /// <summary>Per-update scratch space shared across middleware and the router (e.g. vaulted callback payloads).</summary>
+    public IDictionary<string, object?> Items { get; } = new Dictionary<string, object?>();
 
     // Callback context
     public CallbackContext Callback {  get; }
@@ -65,4 +70,12 @@ public class Context
             parseMode:parseMode ?? ParseMode.None,
             cancellationToken: CancellationToken);
     }
+
+    /// <summary>
+    /// Creates an inline keyboard builder bound to the callback-data vault, enabling
+    /// <c>.Payload(...)</c> buttons whose payload exceeds Telegram's 64-byte callback limit.
+    /// Requires <c>ICallbackStore</c> in DI (registered automatically by <c>AddKippo</c>).
+    /// </summary>
+    public InlineKeyboardBuilder Inline()
+        => new(ServiceProvider?.GetService(typeof(ICallbackStore)) as ICallbackStore);
 }

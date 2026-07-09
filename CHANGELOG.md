@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-07-09
+
+### Added
+- Testing harness (`Kippo.Testing`): `TestBot<THandler>` drives a handler through the real router, middleware pipeline and session store with synthetic updates (`SendText`, `SendCommand`, `TapButton`, `SendContact`), backed by a `RecordingBotClient` that captures every outbound request — no bot token or network required
+- Flood control: opt-in `ThrottlingBotClient` (via `AddKippo(..., configureFloodControl: ...)`) transparently retries requests that fail with `429 Too Many Requests`, honoring the server-supplied `retry_after`, and can throttle sends per chat (`MinIntervalPerChat`)
+- Callback-data vault: `context.Inline().Payload(text, route, payload)` attaches arbitrarily large typed payloads to inline buttons, sidestepping Telegram's 64-byte `callback_data` limit by storing the payload behind a short token (`ICallbackStore`, in-memory by default) and rebinding it to a typed handler parameter on callback
+
+## [1.1.1] - 2026-07-08
+
+### Added
+- Fallback handler: mark one method with `[Fallback]` to catch updates that matched no command, callback, text, contact or chat-member handler — ideal for replying to unknown commands. Runs inside the middleware pipeline after all other routes are checked
+- Automatic command menu: commands declaring a `Description` on `[Command]` are registered to Telegram's `/` command menu on startup via `SetMyCommands`, capped at Telegram's 100-command limit and resilient to network failures
+
 ## [1.1.0] - 2026-07-08
 
 ### Added
@@ -89,6 +102,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message context with reply, edit, and delete methods
 - Callback query context for handling inline keyboard interactions
 
+[1.1.2]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.2
+[1.1.1]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.1
 [1.1.0]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.1.0
 [1.0.9]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.9
 [1.0.8]: https://github.com/TimurbekDev/Kippo/releases/tag/v1.0.8

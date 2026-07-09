@@ -1,8 +1,10 @@
 ﻿using Kippo.Attribute;
+using Kippo.Callbacks;
 using Kippo.Contexs;
 using Kippo.Middleware;
 using System.Globalization;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -287,6 +289,23 @@ public class CommandRouter
                     }
                 }
 
+                if (resolvedValue == null && IsVaultBindable(param.ParameterType)
+                    && context.Items.TryGetValue(CallbackVault.PayloadItemKey, out var payloadObj)
+                    && payloadObj is string payloadJson && payloadJson.Length > 0)
+                {
+                    try
+                    {
+                        resolvedValue = JsonSerializer.Deserialize(payloadJson, param.ParameterType);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogWarning(ex,
+                            "Failed to bind vaulted callback payload to parameter {ParameterName} of type " +
+                            "{ParameterType} for handler {HandlerMethod}.",
+                            param.Name, param.ParameterType.Name, handler.Method.Name);
+                    }
+                }
+
                 if (resolvedValue == null && !param.HasDefaultValue && !IsNullable(param.ParameterType))
                 {
                     throw new InvalidOperationException(
@@ -354,6 +373,18 @@ public class CommandRouter
     private static bool IsNullable(Type type)
     {
         return !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
+    }
+
+    // Vaulted payloads are complex objects; never hijack primitives, strings or enums which are
+    // bound from route values or DI.
+    private static bool IsVaultBindable(Type type)
+    {
+        var underlying = Nullable.GetUnderlyingType(type) ?? type;
+        return !underlying.IsPrimitive
+            && !underlying.IsEnum
+            && underlying != typeof(string)
+            && underlying != typeof(Guid)
+            && underlying != typeof(decimal);
     }
 
     private static bool IsTextMatch(TextAttribute attr, string text)
