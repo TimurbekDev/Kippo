@@ -9,8 +9,9 @@
     <Version>1.1.4</Version>
     <Authors>Timurbek</Authors>
     <Company>Kippo</Company>
-    <Description>A lightweight, attribute-based framework for building Telegram bots in .NET with support for session management, middleware, and intuitive routing.</Description>
-    <PackageTags>telegram;bot;telegram-bot;framework;dotnet;attributes;middleware;session;dependency-injection</PackageTags>
+    <Title>Kippo — Telegram Bot Framework for C# / .NET</Title>
+    <Description>Kippo is a lightweight, attribute-based framework for building Telegram bots in C# and .NET (ASP.NET Core). Features attribute routing ([Command], [Text], [CallbackQuery]), session management, multi-step scenes and conversations, a middleware pipeline, fluent keyboard builders, webhooks, flood control, and first-class unit testing.</Description>
+    <PackageTags>telegram;bot;telegram-bot;telegram-bot-framework;chatbot;framework;csharp;dotnet;aspnetcore;webhook;attributes;middleware;session;scenes;keyboards;dependency-injection</PackageTags>
     <PackageProjectUrl>https://kippo.uz/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/TimurbekDev/KippoGramm</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

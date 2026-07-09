@@ -1,10 +1,13 @@
-# 🤖 Kippo
+# 🤖 Kippo — Telegram Bot Framework for C# & .NET
 
 [![NuGet](https://img.shields.io/nuget/v/Kippo.svg)](https://www.nuget.org/packages/Kippo/)
+[![Downloads](https://img.shields.io/nuget/dt/Kippo.svg)](https://www.nuget.org/packages/Kippo/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%209.0%20%7C%2010.0-purple.svg)](https://dotnet.microsoft.com/)
 
-A lightweight, attribute-based framework for building Telegram bots in .NET with session management, middleware support, and intuitive routing.
+**Kippo** is a lightweight, attribute-based framework for building **Telegram bots in C# and .NET** (ASP.NET Core) — with attribute routing, session management, multi-step scenes, a middleware pipeline, keyboard builders, webhooks, flood control, and first-class unit testing.
+
+📖 **Docs & guides:** [kippo.uz](https://kippo.uz) · 📦 **NuGet:** [`Kippo`](https://www.nuget.org/packages/Kippo/)
 
 ## 📦 Installation
 
